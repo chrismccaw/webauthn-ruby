@@ -24,8 +24,9 @@ module WebAuthn
 
       AAGUID_EXTENSION_OID = "1.3.6.1.4.1.45724.1.1.4"
 
-      def initialize(statement)
+      def initialize(statement, relying_party)
         @statement = statement
+        @relying_party = relying_party
       end
 
       def valid?(_authenticator_data, _client_data_hash)
@@ -52,7 +53,7 @@ module WebAuthn
 
       private
 
-      attr_reader :statement
+      attr_reader :statement, :relying_party
 
       def matching_aaguid?(attested_credential_data_aaguid)
         extension = attestation_certificate&.extensions&.detect { |ext| ext.oid == AAGUID_EXTENSION_OID }
@@ -97,10 +98,10 @@ module WebAuthn
 
       def trustworthy?(aaguid: nil, attestation_certificate_key_id: nil)
         if ATTESTATION_TYPES_WITH_ROOT.include?(attestation_type)
-          configuration.acceptable_attestation_types.include?(attestation_type) &&
+          relying_party.acceptable_attestation_types.include?(attestation_type) &&
             valid_certificate_chain?(aaguid: aaguid, attestation_certificate_key_id: attestation_certificate_key_id)
         else
-          configuration.acceptable_attestation_types.include?(attestation_type)
+          relying_party.acceptable_attestation_types.include?(attestation_type)
         end
       end
 
@@ -124,7 +125,7 @@ module WebAuthn
 
       def root_certificates(aaguid: nil, attestation_certificate_key_id: nil)
         root_certificates =
-          configuration.attestation_root_certificates_finders.reduce([]) do |certs, finder|
+          relying_party.attestation_root_certificates_finders.reduce([]) do |certs, finder|
             if certs.empty?
               finder.find(
                 attestation_format: format,
@@ -150,10 +151,6 @@ module WebAuthn
         ext_asn1 = OpenSSL::ASN1.decode(extension.to_der)
         ext_value = ext_asn1.value.last
         OpenSSL::ASN1.decode(ext_value.value).value
-      end
-
-      def configuration
-        WebAuthn.configuration
       end
     end
   end
