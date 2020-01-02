@@ -24,7 +24,7 @@ module WebAuthn
 
       AAGUID_EXTENSION_OID = "1.3.6.1.4.1.45724.1.1.4"
 
-      def initialize(statement, relying_party: WebAuthn.configuration)
+      def initialize(statement, relying_party: WebAuthn.configuration.relying_party)
         @statement = statement
         @relying_party = relying_party
       end

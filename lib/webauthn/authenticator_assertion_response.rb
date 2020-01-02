@@ -11,7 +11,7 @@ module WebAuthn
   class SignCountVerificationError < VerificationError; end
 
   class AuthenticatorAssertionResponse < AuthenticatorResponse
-    def self.from_client(response, relying_party: WebAuthn.configuration)
+    def self.from_client(response, relying_party: WebAuthn.configuration.relying_party)
       encoder = relying_party.encoder
 
       user_handle =
@@ -30,7 +30,11 @@ module WebAuthn
 
     attr_reader :user_handle
 
-    def initialize(authenticator_data:, signature:, user_handle: nil, relying_party: WebAuthn.configuration, **options)
+    def initialize(authenticator_data:,
+                   signature:,
+                   user_handle: nil,
+                   relying_party: WebAuthn.configuration.relying_party,
+                   **options)
       super(**options)
 
       @authenticator_data_bytes = authenticator_data
