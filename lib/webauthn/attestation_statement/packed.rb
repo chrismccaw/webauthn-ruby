@@ -67,6 +67,7 @@ module WebAuthn
       def valid_signature?(authenticator_data, client_data_hash)
         signature_verifier = WebAuthn::SignatureVerifier.new(
           algorithm,
+          relying_party.algorithms,
           attestation_certificate&.public_key || authenticator_data.credential.public_key_object
         )
 

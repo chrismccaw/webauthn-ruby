@@ -11,15 +11,17 @@ module WebAuthn
         type: credential["type"],
         id: credential["id"],
         raw_id: relying_party.encoder.decode(credential["rawId"]),
-        response: response_class.from_client(credential["response"], relying_party: relying_party)
+        response: response_class.from_client(credential["response"], relying_party: relying_party),
+        encoder: relying_party.encoder
       )
     end
 
-    def initialize(type:, id:, raw_id:, response:)
+    def initialize(type:, id:, raw_id:, response:, encoder: WebAuthn.configuration.encoder)
       @type = type
       @id = id
       @raw_id = raw_id
       @response = response
+      @encoder = encoder
     end
 
     def verify(*_args)
@@ -35,16 +37,14 @@ module WebAuthn
 
     private
 
+    attr_reader :encoder
+
     def valid_type?
       type == TYPE_PUBLIC_KEY
     end
 
     def valid_id?
       raw_id && id && raw_id == WebAuthn.standard_encoder.decode(id)
-    end
-
-    def encoder
-      WebAuthn.configuration.encoder
     end
   end
 end

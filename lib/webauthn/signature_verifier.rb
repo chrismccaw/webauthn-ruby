@@ -9,8 +9,9 @@ module WebAuthn
   class SignatureVerifier
     class UnsupportedAlgorithm < Error; end
 
-    def initialize(algorithm, public_key)
+    def initialize(algorithm, supported_algorithms, public_key)
       @algorithm = algorithm
+      @supported_algorithms = supported_algorithms
       @public_key = public_key
 
       validate
@@ -24,7 +25,7 @@ module WebAuthn
 
     private
 
-    attr_reader :algorithm, :public_key
+    attr_reader :algorithm, :supported_algorithms, :public_key
 
     def cose_algorithm
       case algorithm
@@ -43,10 +44,6 @@ module WebAuthn
       elsif !cose_algorithm.compatible_key?(public_key)
         raise("Incompatible algorithm and key")
       end
-    end
-
-    def supported_algorithms
-      WebAuthn.configuration.algorithms
     end
   end
 end

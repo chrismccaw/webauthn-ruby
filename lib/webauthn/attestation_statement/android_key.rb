@@ -23,7 +23,7 @@ module WebAuthn
 
       def valid_signature?(authenticator_data, client_data_hash)
         WebAuthn::SignatureVerifier
-          .new(algorithm, attestation_certificate.public_key)
+          .new(algorithm, relying_party.algorithms, attestation_certificate.public_key)
           .verify(signature, authenticator_data.data + client_data_hash)
       end
 
