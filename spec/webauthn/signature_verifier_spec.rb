@@ -4,13 +4,16 @@ require "spec_helper"
 
 require "cose/algorithm"
 require "openssl"
+require "webauthn/relying_party"
 require "webauthn/signature_verifier"
 
 RSpec.describe "SignatureVerifier" do
   let(:signature) { key.sign(hash_algorithm, to_be_signed) }
   let(:to_be_signed) { "data" }
   let(:hash_algorithm) { COSE::Algorithm.find(algorithm_id).hash_function }
-  let(:verifier) { WebAuthn::SignatureVerifier.new(algorithm_id, public_key) }
+  let(:rp) { WebAuthn::RelyingParty.new }
+  let(:supported_algorithms) { rp.algorithms }
+  let(:verifier) { WebAuthn::SignatureVerifier.new(algorithm_id, supported_algorithms, public_key) }
 
   context "ES256" do
     let(:algorithm_id) { -7 }
@@ -187,10 +190,7 @@ RSpec.describe "SignatureVerifier" do
     let(:algorithm_id) { -65535 }
     let(:public_key) { key.public_key }
     let(:key) { create_rsa_key }
-
-    before do
-      WebAuthn.configuration.algorithms << "RS1"
-    end
+    let(:supported_algorithms) { rp.algorithms + ["RS1"] }
 
     it "works" do
       expect(verifier.verify(signature, to_be_signed)).to be_truthy
